@@ -11,6 +11,13 @@ MAP_HEIGHT = len(map_data.grid)
 SCREEN_WIDTH, SCREEN_HEIGHT = MAP_WIDTH * TILE_SIZE, MAP_HEIGHT * TILE_SIZE
 FPS = 60
 
+# --- Colors (NEW) ---
+START_BG = (15, 25, 35)
+GAME_BG = (30, 90, 143)
+WIN_BG = (20, 40, 25)
+MESSAGE_BOX_COLOR = (60, 20, 20)
+MESSAGE_BORDER_COLOR = (255, 100, 100)
+
 # --- Create window ---
 WIN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Doctor’s Little Assistant")
@@ -28,7 +35,7 @@ def load_sprite(path, size, fallback_color):
     surf.fill(fallback_color)
     return surf
 
-# --- Load sprites (supports custom images) ---
+# --- Load sprites ---
 player_sprite = load_sprite("assets/Robot.png", TILE_SIZE, (255, 255, 0))
 wall_sprite = load_sprite("assets/wall_tile.png", TILE_SIZE, (100, 100, 100))
 item_sprites = [
@@ -50,8 +57,8 @@ wall_rects = [
     if grid[y][x] == 1
 ]
 
-# --- Random goal counts for this round ---
-goal_counts = [random.randint(2, 4) for _ in range(3)]  # R, G, B goals
+# --- Random goal counts ---
+goal_counts = [random.randint(2, 4) for _ in range(3)]
 
 # --- Player setup ---
 player_pos = pygame.Vector2(2 * TILE_SIZE, 2 * TILE_SIZE)
@@ -60,7 +67,7 @@ score = [0, 0, 0]
 camera_x, camera_y = 0, 0
 font = pygame.font.SysFont(None, 30)
 
-# --- Create collectables (number depends on goal_counts) ---
+# --- Create collectables ---
 items = []
 for item_type in range(3):
     for _ in range(goal_counts[item_type]):
@@ -72,7 +79,7 @@ for item_type in range(3):
 
 # --- Drawing ---
 def draw(message=None):
-    WIN.fill((30, 30, 30))
+    WIN.fill(GAME_BG)  # NEW background color for gameplay
 
     # Draw walls
     for y in range(MAP_HEIGHT):
@@ -95,22 +102,22 @@ def draw(message=None):
 
     # --- Draw collected items horizontally ---
     hud_x, hud_y = 10, 10
-    spacing = 120  # space between each item HUD
+    spacing = 120
     for i in range(3):
-        # Draw item sprite
         WIN.blit(item_sprites[i], (hud_x + i * spacing, hud_y))
-        # Draw collected / goal count
         text_surf = font.render(f"{score[i]}/{goal_counts[i]}", True, (255, 255, 255))
         WIN.blit(text_surf, (hud_x + i * spacing + TILE_SIZE // 2 + 5, hud_y + TILE_SIZE // 4))
 
-    # Reminder message
+    # --- Reminder message with background box (NEW) ---
     if message:
-        msg_text = font.render(message, True, (255, 180, 180))
-        WIN.blit(msg_text, (SCREEN_WIDTH // 2 - msg_text.get_width() // 2, SCREEN_HEIGHT//2))
+        msg_text = font.render(message, True, (255, 255, 255))
+        msg_rect = msg_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        box_rect = msg_rect.inflate(40, 20)
+        pygame.draw.rect(WIN, MESSAGE_BOX_COLOR, box_rect, border_radius=8)
+        pygame.draw.rect(WIN, MESSAGE_BORDER_COLOR, box_rect, 3, border_radius=8)
+        WIN.blit(msg_text, msg_rect)
 
     pygame.display.flip()
-
-
 
 # --- Start screen ---
 def start_screen():
@@ -126,21 +133,19 @@ def start_screen():
     subtitle = font_small.render("Press SPACE to Start", True, (200, 200, 200))
 
     lines = [
-        ("Red items", goal_counts[0], item_sprites[0]),
-        ("Green items", goal_counts[1], item_sprites[1]),
-        ("Blue items", goal_counts[2], item_sprites[2])
+        ("First-aid Kits", goal_counts[0], item_sprites[0]),
+        ("Pills", goal_counts[1], item_sprites[1]),
+        ("Syringes", goal_counts[2], item_sprites[2])
     ]
 
     while True:
-        WIN.fill((20, 20, 20))
+        WIN.fill(START_BG)  # NEW background color for start screen
         WIN.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 50))
 
-        # Draw story
         for i, line in enumerate(story_lines):
-            story_text = font_small.render(line, True, (200, 200, 200))
+            story_text = font_small.render(line, True, (220, 220, 220))
             WIN.blit(story_text, (SCREEN_WIDTH // 2 - story_text.get_width() // 2, 120 + i * 30))
 
-        # Draw item lines
         start_y = 250
         for i, (name, count, sprite) in enumerate(lines):
             sprite_pos = (SCREEN_WIDTH // 2 - 80, start_y + i * 40)
@@ -163,16 +168,14 @@ def win_screen():
     font_small = pygame.font.SysFont(None, 30)
     msg = font_big.render("OPERATION SUCCESS!", True, (0, 255, 0))
 
-    # Button rects
     play_again_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 50, 200, 50)
     quit_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 120, 200, 50)
 
     while True:
-        WIN.fill((0, 0, 0))
+        WIN.fill(WIN_BG)  # NEW background color for win screen
         WIN.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2,
                        SCREEN_HEIGHT // 2 - 100))
 
-        # Draw buttons
         pygame.draw.rect(WIN, (50, 50, 200), play_again_rect)
         pygame.draw.rect(WIN, (200, 50, 50), quit_rect)
 
@@ -191,7 +194,7 @@ def win_screen():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mx, my = event.pos
                 if play_again_rect.collidepoint(mx, my):
-                    # Reset game state
+                    # Reset
                     global player_pos, score, items, goal_counts
                     player_pos = pygame.Vector2(2 * TILE_SIZE, 2 * TILE_SIZE)
                     score = [0, 0, 0]
@@ -204,10 +207,9 @@ def win_screen():
                                 if grid[iy][ix] == 0 and (ix, iy) not in [(x, y) for x, y, _ in items]:
                                     items.append((ix, iy, item_type))
                                     break
-                    return  # Back to main game
+                    return
                 if quit_rect.collidepoint(mx, my):
                     pygame.quit(); sys.exit()
-
 
 # --- Main loop ---
 def main():
