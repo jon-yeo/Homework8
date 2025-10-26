@@ -1,5 +1,5 @@
 import pygame, sys, random, os
-import map_data  # your custom map file
+import map_data  #custom map file
 
 # --- Initialize ---
 pygame.init()
@@ -11,7 +11,7 @@ MAP_HEIGHT = len(map_data.grid)
 SCREEN_WIDTH, SCREEN_HEIGHT = MAP_WIDTH * TILE_SIZE, MAP_HEIGHT * TILE_SIZE
 FPS = 60
 
-# --- Colors (NEW) ---
+# --- Colors ---
 START_BG = (15, 25, 35)
 GAME_BG = (30, 90, 143)
 WIN_BG = (20, 40, 25)
@@ -79,7 +79,7 @@ for item_type in range(3):
 
 # --- Drawing ---
 def draw(message=None):
-    WIN.fill(GAME_BG)  # NEW background color for gameplay
+    WIN.fill(GAME_BG)  #background color for gameplay
 
     # Draw walls
     for y in range(MAP_HEIGHT):
@@ -108,7 +108,7 @@ def draw(message=None):
         text_surf = font.render(f"{score[i]}/{goal_counts[i]}", True, (255, 255, 255))
         WIN.blit(text_surf, (hud_x + i * spacing + TILE_SIZE // 2 + 5, hud_y + TILE_SIZE // 4))
 
-    # --- Reminder message with background box (NEW) ---
+    # --- Reminder message with background box ---
     if message:
         msg_text = font.render(message, True, (255, 255, 255))
         msg_rect = msg_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
